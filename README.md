@@ -431,10 +431,9 @@ curl -s -b cookies.txt -X POST \
 
 ## Para os avaliadores
 
-Acesso ao repositório liberado para:
-
-- **`liga-LeonardoWada`**
-- **`cauaneroberta`**
+O repositório é público: basta o link, não é preciso aceitar convite nem pedir
+acesso. Para rodar, só Docker — não há dependência para instalar, chave para
+configurar nem build para esperar.
 
 Roteiro sugerido para avaliar em ~3 minutos:
 
