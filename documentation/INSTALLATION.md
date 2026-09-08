@@ -1,156 +1,140 @@
-Guia de Instalação Passo a Passo — Portal de Cartas
+# Instalação manual (sem Docker)
 
-Este guia descreve a instalação em uma máquina Ubuntu/Debian. Se usa outra distro (CentOS/RHEL/Fedora) peça e eu adapto os comandos.
+> O caminho recomendado é o Docker — veja [`SETUP.md`](SETUP.md). Este guia existe
+> para quem precisa rodar direto no sistema, e assume Ubuntu/Debian.
 
-1) Atualizar sistema
+O projeto não tem dependências além do próprio PHP: não há `composer install`
+nem build de frontend.
+
+## 1. Instalar PHP, Apache e MySQL
 
 ```bash
 sudo apt update
-sudo apt upgrade -y
+sudo apt install -y apache2 php libapache2-mod-php php-mysql php-mbstring mysql-server
 ```
 
-2) Instalar Apache, PHP e extensões necessárias
+Confirme que a extensão `pdo_mysql` está carregada:
 
 ```bash
-sudo apt install -y apache2 php libapache2-mod-php php-mysql php-gd php-mbstring php-xml php-zip unzip curl wget
+php -m | grep -E 'pdo_mysql|mbstring'
 ```
 
-Verifique as versões:
+## 2. Criar o banco
+
+O mesmo arquivo usado pelo Docker serve aqui — ele cria o database, as tabelas e
+os seeds:
 
 ```bash
-apache2ctl -v
-php -v
-php -m | egrep "pdo|pdo_mysql|mysqli|gd|mbstring|xml" || true
+sudo mysql < docker/mysql/init.sql
 ```
 
-3) Instalar MySQL (server) e ajustar segurança
+Crie um usuário para a aplicação (evite usar o root):
 
 ```bash
-sudo apt install -y mysql-server
-sudo systemctl enable --now mysql
-sudo mysql_secure_installation
+sudo mysql -e "
+  CREATE USER IF NOT EXISTS 'portal'@'localhost' IDENTIFIED BY 'portal';
+  GRANT ALL PRIVILEGES ON portal_cartas.* TO 'portal'@'localhost';
+  FLUSH PRIVILEGES;"
 ```
 
-Siga os prompts do `mysql_secure_installation` para configurar senha root e opções de segurança.
-
-4) Importar schema do projeto
-
-No diretório raiz do projeto (onde está `backend/sql/schema.sql`) rode:
+Confira o seed do administrador:
 
 ```bash
-mysql -u root -p < backend/sql/schema.sql
+mysql -uportal -pportal portal_cartas -e "SELECT id, nome, email FROM usuarios;"
 ```
 
-Ou, caso queira executar dentro do cliente mysql:
+## 3. Apontar a conexão
+
+[`src/config/database.php`](../src/config/database.php) lê variáveis de ambiente e
+cai em defaults voltados para o Docker (`DB_HOST=db`). Rodando local, exporte:
 
 ```bash
-mysql -u root -p
-mysql> SOURCE /caminho/para/portal-cartas/backend/sql/schema.sql;
+export DB_HOST=127.0.0.1
+export DB_PORT=3306
+export DB_NAME=portal_cartas
+export DB_USER=portal
+export DB_PASS=portal
 ```
 
-Se o banco já foi criado com uma versão anterior do projeto, aplique também a migração:
+Sob o Apache, as mesmas variáveis vão no VirtualHost com `SetEnv`.
+
+## 4a. Rodar com o servidor embutido do PHP (desenvolvimento)
 
 ```bash
-mysql -u root -p < backend/sql/migrate_cards.sql
+php -S localhost:8080 -t src
 ```
 
-5) Gerar hash da senha do administrador (opcional)
+Acesse <http://localhost:8080>. As variáveis exportadas no passo 3 são herdadas
+pelo processo.
 
-O seed no arquivo `schema.sql` pode conter um placeholder. Para definir uma senha conhecida (ex.: `password123`) execute:
+## 4b. Rodar sob o Apache
 
-```bash
-# Gera hash bcrypt com PHP
-php -r 'echo password_hash("password123", PASSWORD_BCRYPT) . "\n";' 
-```
-
-Pegue o hash gerado e atualize o usuário admin no banco:
-
-```bash
-mysql -u root -p -e "USE portal_cartas; UPDATE users SET password='SEU_HASH_AQUI' WHERE email='admin@example.com';"
-```
-
-6) Criar diretório de uploads e ajustar permissões
-
-```bash
-mkdir -p backend/public/uploads
-sudo chown -R www-data:www-data backend/public/uploads
-sudo chmod -R 755 backend/public/uploads
-```
-
-7) Configurar Apache (opcional — para servir o backend em produção)
-
-Crie um virtual host em `/etc/apache2/sites-available/portal-cartas.conf` com este conteúdo (substitua `/home/usuario/Documentos/RepositoriosMint/portal-cartas` pelo path correto):
-
-```
+```apache
 <VirtualHost *:80>
     ServerName portal-cartas.local
-    DocumentRoot /home/usuario/Documentos/RepositoriosMint/portal-cartas/backend/public
+    DocumentRoot /caminho/para/portal-cartas/src
 
-    <Directory /home/usuario/Documentos/RepositoriosMint/portal-cartas/backend/public>
-        Options Indexes FollowSymLinks
+    SetEnv DB_HOST 127.0.0.1
+    SetEnv DB_NAME portal_cartas
+    SetEnv DB_USER portal
+    SetEnv DB_PASS portal
+
+    <Directory /caminho/para/portal-cartas/src>
+        Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
+        DirectoryIndex index.php
     </Directory>
 
-    ErrorLog ${APACHE_LOG_DIR}/portal-cartas-error.log
-    CustomLog ${APACHE_LOG_DIR}/portal-cartas-access.log combined
+    # Nunca servir a configuração
+    <Directory /caminho/para/portal-cartas/src/config>
+        Require all denied
+    </Directory>
+
+    # Uploads são conteúdo estático, nunca executáveis
+    <Directory /caminho/para/portal-cartas/src/uploads>
+        Options -Indexes -ExecCGI
+        php_flag engine off
+    </Directory>
 </VirtualHost>
 ```
 
-Ative o site e módulos necessários:
-
 ```bash
-sudo a2enmod rewrite
 sudo a2ensite portal-cartas
 sudo systemctl reload apache2
+echo "127.0.0.1 portal-cartas.local" | sudo tee -a /etc/hosts
 ```
 
-Adicione uma entrada no `/etc/hosts` (apenas para desenvolvimento local):
+O bloco de `uploads` **não é opcional**: sem ele, um arquivo enviado que passe
+pela validação de imagem poderia ser executado como PHP.
+
+## 5. Permissão de escrita nos uploads
 
 ```bash
-# como root ou sudo edite /etc/hosts e adicione
-127.0.0.1   portal-cartas.local
+mkdir -p src/uploads
+sudo chown -R www-data:www-data src/uploads
+sudo chmod 755 src/uploads
 ```
 
-8) Rodar em modo desenvolvimento (alternativa ao Apache)
+Com o servidor embutido do PHP, o dono deve ser o seu próprio usuário — nesse
+caso pule o `chown`.
 
-Se quiser testes rápidos sem configurar Apache, use o servidor embutido do PHP:
+## 6. Verificar
 
 ```bash
-# a partir da raiz do projeto
-php -S localhost:8000 -t backend/public
+curl -s 'http://localhost:8080/api/edicoes.php?game=magic'
 ```
 
-E sirva o frontend estaticamente (opcional):
+Deve devolver as cinco edições de Magic. Em seguida abra o portal no navegador e
+entre com `admin@cards.com` / `admin123password`.
 
-```bash
-python3 -m http.server 8080 --directory frontend
-```
+## Problemas comuns
 
-9) Testes rápidos
+**Página em branco.** `display_errors` fica desligado; olhe o log do Apache
+(`/var/log/apache2/error.log`) ou a saída do servidor embutido.
 
-- Testar backend:
+**"Não foi possível consultar as cartas".** Quase sempre é conexão: confira as
+variáveis do passo 3 e se o MySQL está no ar.
 
-```bash
-curl -i http://localhost:8000/
-```
-
-- Verificar que o banco `portal_cartas` existe e que o usuário admin está presente:
-
-```bash
-mysql -u root -p -e "SELECT id,email,created_at FROM portal_cartas.users LIMIT 10;"
-```
-
-10) Dicas e resolução de problemas
-
-- "Access denied for user 'root'@'localhost'": verifique se usou `-p` corretamente e se a senha root do MySQL foi definida. Use `sudo mysql` para entrar como root sem senha em instalações que usam auth_socket.
-- Se o PHP não carregar extensões (`pdo_mysql`): instale `php-mysql` e reinicie o Apache (`sudo systemctl restart apache2`).
-- Permissões de upload: se conseguir salvar arquivos, remova permissão de escrita ampla e mantenha `www-data` como dono.
-- Firewall: se acessar de outra máquina, abra porta 80/443 (`sudo ufw allow 'Apache Full'`).
-
-11) Próximos passos sugeridos
-
-- Implementar rotas básicas de API (`/login`, `/cards`, `/editions`) em `backend/src`.
-- Implementar o frontend (login + CRUD) consumindo a API.
-
-Se quiser, eu adapto este guia para CentOS/RHEL (dnf) ou crio o arquivo de `VirtualHost` pronto com seu caminho exato — me diga o path do projeto se quiser que eu gere o arquivo já preenchido.
+**Login recusa a senha correta.** Confirme que o `init.sql` rodou por completo —
+a coluna `senha` precisa conter um hash começando com `$2y$`.

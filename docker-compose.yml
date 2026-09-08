@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: portal-cartas-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: portal_cartas
+      MYSQL_USER: portal
+      MYSQL_PASSWORD: portal
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  web:
+    build:
+      context: ./docker/php
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    container_name: portal-cartas-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: portal_cartas
+      DB_USER: portal
+      DB_PASS: portal
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+
+volumes:
+  db_data:

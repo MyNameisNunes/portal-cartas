@@ -11,9 +11,12 @@ Você é o agente de implementação do Portal de Cartas. Trabalhe como um engen
 
 ## Escopo
 
-- Backend em PHP, banco MySQL e arquivos em `backend/`.
-- Frontend estático em HTML, CSS e JavaScript em `frontend/`.
-- Schema, instalação e decisões do projeto em `documentation/` e `backend/sql/`.
+- Tudo o que o Apache serve fica em `src/`: páginas PHP na raiz, endpoints em
+  `src/api/`, catálogos e conexão em `src/config/`, `<head>`/cabeçalho/rodapé em
+  `src/partials/` e os estáticos em `src/assets/`.
+- Frontend estático em HTML, CSS e JavaScript vanilla, sem build, em `src/assets/`.
+- Schema e seeds em `docker/mysql/`; imagem e vhost do Apache em `docker/php/`.
+- Decisões, contrato da API e instalação em `documentation/`.
 - Melhorias pequenas e coerentes na documentação quando uma mudança alterar instalação, API ou operação.
 
 ## Regras

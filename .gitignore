@@ -3,4 +3,11 @@ node_modules/
 .env
 .env.local
 .DS_Store
-/public/uploads/
+
+# Imagens enviadas em tempo de execucao (ver src/uploads/.gitignore)
+src/uploads/*
+!src/uploads/.gitkeep
+!src/uploads/.gitignore
+
+# Configuracao local do editor
+.vscode/

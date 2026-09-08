@@ -1,0 +1,1328 @@
+/* ============================================================
+   CardVault — folha unica do portal.
+
+   Tudo que e cor, fonte ou sombra sai de um token declarado em
+   :root. Foi o que permitiu trocar a marca de azul para vermelho
+   e acrescentar o tema escuro sem cacar valor solto pela folha:
+   o bloco de tema escuro so redeclara os mesmos tokens.
+
+   Ordem: tokens, tema escuro, base, utilitarios, cabecalho, hero,
+   indicadores, catalogo, formularios, botoes, avisos, modais,
+   login, colecoes, importacoes e, no fim, as media queries.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. Tokens — tema claro
+   ------------------------------------------------------------ */
+:root {
+  /* Tipografia. Duas familias, dois papeis:
+     titulo para titulos, numeros e rotulos curtos; texto para o resto.
+     A pilha de fallback existe para a janela em que a fonte do Google
+     ainda nao chegou (e para quando ela nao chega nunca). */
+  --fonte-titulo: 'Space Grotesk', 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fonte-texto:  'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fonte-mono:   ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  /* Marca. Duas entradas porque texto e preenchimento tem exigencias
+     diferentes de contraste: --marca vai sobre o fundo da pagina,
+     --marca-cheia recebe texto branco por cima. */
+  --marca:           #c8102e;   /* 5.9:1 sobre o fundo claro */
+  --marca-cheia:     #d81f2a;   /* branco por cima: 5.1:1    */
+  --marca-forte:     #a8121c;   /* hover do botao cheio      */
+  --marca-contraste: #fff;
+  --marca-suave:     #fdecec;   /* chip, aba ativa, realce leve */
+  --marca-halo:      rgba(200, 16, 46, .16);
+
+  /* Superficies e texto */
+  --fundo:      #fff;
+  --superficie: #fff;
+  --recuo:      #faf6f6;
+  --linha:      #ecdfe0;
+  --tinta:      #1d1418;
+  --texto:      #3c3238;
+  --apagado:    #756a70;
+
+  /* Estados */
+  --ok:          #12805a;
+  --ok-suave:    #e6f5ee;
+  --ok-borda:    #bce4d2;
+  --erro:        #c4162a;
+  --erro-suave:  #fdeaec;
+  --erro-borda:  #f4c3c8;
+  --erro-forte:  #9d0f21;
+  --aviso:       #9a6a06;
+  --aviso-suave: #fff4e0;
+  --aviso-borda: #f0d9a8;
+
+  /* Acentos dos indicadores e das raridades */
+  --ouro:        #b8790a;
+  --ouro-suave:  #fff3da;
+  --realce:      #6a4fd0;
+  --realce-suave:#efeafc;
+
+  /* Placeholder de carta sem imagem */
+  --vazio:        linear-gradient(135deg, #efe6e7, #f8f3f4);
+  --vazio-tinta:  #ab9ea2;
+
+  /* Hero */
+  --hero-fundo:   linear-gradient(117deg, #a4101c, #d81f2a 56%, #ef5138);
+  --hero-titulo:  #fff;
+  --hero-enfase:  #ffd08a;
+  --hero-texto:   #ffdcd8;
+  --hero-eyebrow: #ffc4bd;
+  --hero-sombra:  rgba(122, 10, 20, .42);
+  --hero-orbita:  rgba(255, 255, 255, .40);
+
+  /* Formas */
+  --raio: 8px;
+  --sombra-card:  0 12px 26px rgba(80, 12, 18, .09);
+  --sombra-alta:  0 25px 60px rgba(80, 12, 18, .10);
+  --sombra-modal: 0 25px 70px rgba(45, 8, 12, .28);
+  --sombra-botao: 0 8px 20px rgba(216, 31, 42, .22);
+  --veu:          rgba(29, 20, 24, .55);
+}
+
+/* ------------------------------------------------------------
+   2. Tema escuro
+
+   Um gatilho so: html[data-tema="escuro"]. Quem resolve o valor e o
+   script inline do <head>, que le a escolha salva no localStorage e,
+   na falta dela, consulta o prefers-color-scheme. Manter a decisao no
+   JS evita repetir esta lista de tokens dentro de uma media query — e
+   a lista repetida seria justamente onde os dois temas sairiam do ar.
+   ------------------------------------------------------------ */
+:root[data-tema="escuro"] {
+  --marca:           #ff5c63;   /* 5.9:1 sobre a superficie escura */
+  --marca-cheia:     #d81f2a;   /* o preenchimento nao muda: branco por cima continua legivel */
+  --marca-forte:     #b3121f;
+  --marca-suave:     rgba(255, 92, 99, .15);
+  --marca-halo:      rgba(255, 92, 99, .24);
+
+  --fundo:      #141013;
+  --superficie: #1c1619;
+  --recuo:      #241c20;
+  --linha:      #362b2f;
+  --tinta:      #f7f1f2;
+  --texto:      #ded4d7;
+  --apagado:    #a99ba0;
+
+  --ok:          #4bd6a0;
+  --ok-suave:    rgba(75, 214, 160, .13);
+  --ok-borda:    rgba(75, 214, 160, .30);
+  --erro:        #ff8189;
+  --erro-suave:  rgba(255, 129, 137, .13);
+  --erro-borda:  rgba(255, 129, 137, .32);
+  --erro-forte:  #ffb0b5;
+  --aviso:       #e6b45c;
+  --aviso-suave: rgba(230, 180, 92, .13);
+  --aviso-borda: rgba(230, 180, 92, .30);
+
+  --ouro:        #e0a83c;
+  --ouro-suave:  rgba(224, 168, 60, .14);
+  --realce:      #a98fff;
+  --realce-suave:rgba(169, 143, 255, .15);
+
+  --vazio:       linear-gradient(135deg, #2a2126, #201a1d);
+  --vazio-tinta: #6e6167;
+
+  --hero-fundo:   linear-gradient(117deg, #490810, #96161f 56%, #bd3329);
+  --hero-enfase:  #ffc978;
+  --hero-texto:   #f3cfca;
+  --hero-eyebrow: #f0aba3;
+  --hero-sombra:  rgba(0, 0, 0, .55);
+  --hero-orbita:  rgba(255, 255, 255, .22);
+
+  --sombra-card:  0 12px 26px rgba(0, 0, 0, .45);
+  --sombra-alta:  0 25px 60px rgba(0, 0, 0, .50);
+  --sombra-modal: 0 25px 70px rgba(0, 0, 0, .65);
+  --sombra-botao: 0 8px 20px rgba(216, 31, 42, .35);
+  --veu:          rgba(8, 5, 6, .70);
+}
+
+/* ------------------------------------------------------------
+   3. Base
+   ------------------------------------------------------------ */
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+:root[data-tema="escuro"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--fonte-texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+h1, h2, h3 { color: var(--tinta); font-family: var(--fonte-titulo); }
+
+/* ------------------------------------------------------------
+   4. Utilitarios
+   ------------------------------------------------------------ */
+[hidden] { display: none !important; }
+
+.site-shell { overflow: hidden; }
+
+/* Texto que so o leitor de tela recebe: e o nome acessivel de botoes
+   que na tela sao apenas um icone. */
+.apenas-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--marca);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.pular-para-conteudo {
+  position: absolute;
+  left: -9999px;
+  z-index: 20;
+  padding: 10px 15px;
+  background: var(--marca-cheia);
+  color: var(--marca-contraste);
+  border-radius: 0 0 var(--raio) 0;
+  font-weight: 700;
+}
+.pular-para-conteudo:focus { left: 0; top: 0; }
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--marca);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.empty-state { text-align: center; color: var(--apagado); }
+
+@keyframes girar  { to { transform: rotate(360deg); } }
+@keyframes brilhar { to { background-position: -300% 0; } }
+
+/* ------------------------------------------------------------
+   5. Cabecalho
+   ------------------------------------------------------------ */
+.site-header {
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1180px;
+  margin: auto;
+  padding: 0 30px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tinta);
+  font: 700 22px/1 var(--fonte-titulo);
+  letter-spacing: -1px;
+}
+.brand > span:last-child > span { color: var(--marca); }
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--marca-contraste);
+  background: var(--marca-cheia);
+  font-size: 12px;
+  letter-spacing: 0;
+  border-radius: 9px;
+  transform: rotate(-7deg);
+}
+
+.main-nav { display: flex; gap: 8px; margin-left: 80px; }
+.main-nav a {
+  padding: 10px 17px;
+  color: var(--apagado);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 22px;
+}
+.main-nav a:hover { color: var(--tinta); }
+.main-nav a.active { color: var(--marca); background: var(--marca-suave); }
+
+.acoes-do-topo { display: flex; align-items: center; gap: 6px; }
+
+/* Botao de tema: o icone e desenhado aqui, nao trocado pelo JS. A lua
+   aparece no claro (o clique leva ao escuro) e o sol, no escuro. */
+.tema-toggle {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--linha);
+  border-radius: 50%;
+  color: var(--apagado);
+  background: var(--superficie);
+  transition: color .2s, border-color .2s, background .2s;
+}
+.tema-toggle:hover { color: var(--marca); border-color: var(--marca); background: var(--marca-suave); }
+
+/* Lua: um circulo vazado por uma sombra interna deslocada. */
+.tema-toggle::before {
+  content: "";
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  box-shadow: inset -5px -3px 0 0 currentColor;
+}
+
+/* Sol: circulo cheio mais oito raios feitos de sombras espalhadas. */
+:root[data-tema="escuro"] .tema-toggle::before {
+  width: 11px;
+  height: 11px;
+  background: currentColor;
+  box-shadow:
+      0 -8px 0 -3.5px currentColor,  0 8px 0 -3.5px currentColor,
+    -8px    0 0 -3.5px currentColor,  8px   0 0 -3.5px currentColor,
+      -6px -6px 0 -4px currentColor,  6px -6px 0 -4px currentColor,
+      -6px  6px 0 -4px currentColor,  6px  6px 0 -4px currentColor;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 6px;
+  background: none;
+  border: 0;
+  border-radius: 22px;
+  color: var(--apagado);
+}
+.profile-button:hover { background: var(--recuo); }
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  color: var(--marca-contraste);
+  background: var(--tinta);
+  font-size: 11px;
+  font-weight: 700;
+}
+:root[data-tema="escuro"] .avatar { color: var(--fundo); }
+
+.profile-copy { display: flex; flex-direction: column; text-align: left; line-height: 1.3; }
+.profile-copy strong {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tinta);
+  font-size: 12px;
+}
+.profile-copy small { font-size: 10px; }
+
+/* ------------------------------------------------------------
+   6. Hero
+   ------------------------------------------------------------ */
+.dashboard-hero {
+  display: flex;
+  min-height: 340px;
+  padding: 48px max(30px, calc((100% - 1180px) / 2));
+  color: var(--hero-titulo);
+  background: var(--hero-fundo);
+  isolation: isolate;
+}
+.dashboard-hero > div:first-child { width: 50%; padding-top: 15px; }
+.dashboard-hero .eyebrow { color: var(--hero-eyebrow); }
+.dashboard-hero h1 {
+  margin: 0;
+  color: var(--hero-titulo);
+  font: 700 clamp(38px, 5vw, 62px)/.98 var(--fonte-titulo);
+  letter-spacing: -3px;
+}
+.dashboard-hero h1 em { color: var(--hero-enfase); font-style: normal; }
+.dashboard-hero p:not(.eyebrow) {
+  max-width: 410px;
+  margin: 22px 0 0;
+  color: var(--hero-texto);
+  font-size: 16px;
+}
+
+.hero-art { position: relative; width: 50%; display: flex; justify-content: center; }
+.hero-art img {
+  width: 220px;
+  height: 270px;
+  object-fit: cover;
+  object-position: center top;
+  border: 8px solid var(--superficie);
+  box-shadow: 20px 25px 45px var(--hero-sombra);
+  transform: rotate(8deg);
+}
+
+.hero-orbit {
+  position: absolute;
+  width: 340px;
+  height: 260px;
+  border: 1px solid var(--hero-orbita);
+  border-radius: 50%;
+  transform: rotate(-25deg);
+}
+
+.hero-badge {
+  position: absolute;
+  right: 17%;
+  bottom: 26px;
+  padding: 13px 17px;
+  color: var(--tinta);
+  background: var(--superficie);
+  border-radius: 12px;
+  font: 700 13px var(--fonte-titulo);
+  box-shadow: 0 10px 25px var(--hero-sombra);
+}
+.hero-badge small { display: block; color: var(--apagado); font: 500 10px var(--fonte-texto); }
+
+/* Nas paginas internas o cabecalho nao e o assunto. */
+.dashboard-hero.compacto { min-height: 260px; padding-top: 38px; padding-bottom: 38px; }
+.dashboard-hero.compacto h1 { font-size: clamp(32px, 4vw, 48px); }
+.dashboard-hero.compacto .hero-art img { width: 180px; height: 225px; }
+.dashboard-hero.compacto .hero-orbit { width: 280px; height: 215px; }
+
+/* ------------------------------------------------------------
+   7. Indicadores
+   ------------------------------------------------------------ */
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 29px 0;
+  border-bottom: 1px solid var(--linha);
+}
+.quick-stats > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  border-right: 1px solid var(--linha);
+}
+.quick-stats > div:last-child { border: 0; }
+.quick-stats p { margin: 0; }
+.quick-stats strong, .quick-stats small { display: block; }
+.quick-stats strong { color: var(--tinta); font: 700 21px var(--fonte-titulo); }
+.quick-stats small { margin-top: 3px; color: var(--apagado); font-size: 11px; }
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 17px;
+}
+.stat-icon.marca  { color: var(--marca);  background: var(--marca-suave); }
+.stat-icon.ouro   { color: var(--ouro);   background: var(--ouro-suave); }
+.stat-icon.realce { color: var(--realce); background: var(--realce-suave); }
+.stat-icon.tinta  { color: var(--tinta);  background: var(--recuo); }
+
+/* ------------------------------------------------------------
+   8. Secao de catalogo e barra de filtros
+   ------------------------------------------------------------ */
+.catalog-section { max-width: 1120px; margin: 0 auto; padding: 58px 0 82px; }
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+.section-heading h2 { margin: 0; font: 700 30px var(--fonte-titulo); letter-spacing: -1px; }
+.section-heading .eyebrow { margin-bottom: 8px; }
+
+.toolbar { display: flex; align-items: center; gap: 18px; margin-bottom: 25px; }
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 270px;
+  padding: 0 14px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  color: var(--apagado);
+}
+.search-field:focus-within { border-color: var(--marca); box-shadow: 0 0 0 3px var(--marca-halo); }
+.search-field input {
+  width: 100%;
+  height: 43px;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--texto);
+  font-size: 13px;
+}
+
+.filter-tabs { display: flex; gap: 4px; overflow: auto; }
+.filter-tab {
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 20px;
+  color: var(--apagado);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.filter-tab:hover { color: var(--tinta); }
+.filter-tab.active { color: var(--marca); background: var(--marca-suave); }
+
+.filter-tabs.linha-secundaria {
+  margin: -12px 0 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linha);
+}
+
+/* ------------------------------------------------------------
+   9. Cartao de carta
+   ------------------------------------------------------------ */
+.catalog-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+
+.card {
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--superficie);
+  transition: .2s box-shadow, .2s transform;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--sombra-card); }
+
+.card-image { position: relative; height: 190px; background: var(--recuo); }
+.card-image img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Ancorada no topo, como o mosaico e a capa da lista: aparece o nome da
+     carta e a arte, nao o meio do quadro de texto. */
+  object-position: center top;
+}
+
+/* Fica atras da <img>: aparece tanto quando nao ha imagem quanto quando a
+   URL externa falha e o JS remove o <img>. */
+.card-sem-imagem {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--vazio);
+  color: var(--vazio-tinta);
+  font: 700 30px var(--fonte-titulo);
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.card-body { position: relative; padding: 14px; }
+.card-game { margin: 0 0 7px; color: var(--marca); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.card h3 {
+  margin: 0 0 7px;
+  font: 600 15px var(--fonte-titulo);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-nome-pt { display: block; margin-top: 2px; color: var(--apagado); font-size: 11px; font-weight: 500; }
+.card-edition {
+  display: block;
+  color: var(--apagado);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-actions { display: flex; gap: 8px; margin-top: 13px; }
+/* Com a marca em vermelho, colorir a acao destrutiva de vermelho deixaria
+   "Excluir" identico a "Editar". Quem separa as duas e a forma: a acao
+   principal vem preenchida com a marca, a destrutiva vem so contornada. */
+.card-actions button {
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--marca);
+  background: var(--marca-suave);
+  font-size: 10px;
+  font-weight: 700;
+}
+.card-actions button:hover { background: var(--marca-halo); }
+.card-actions button:last-child {
+  color: var(--erro);
+  background: transparent;
+  border-color: var(--erro-borda);
+}
+.card-actions button:last-child:hover { background: var(--erro-suave); }
+.card-actions button[aria-busy="true"] { opacity: .62; cursor: not-allowed; pointer-events: none; }
+
+/* Raridade: o fundo e opaco o bastante para o texto branco sobreviver a
+   qualquer arte de carta por baixo. */
+.rarity {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 5px 7px;
+  color: #fff;
+  background: rgba(29, 20, 24, .82);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.rarity[data-raridade="comum"]      { background: rgba(74, 66, 71, .90); }
+.rarity[data-raridade="incomum"]    { background: rgba(20, 106, 78, .90); }
+.rarity[data-raridade="rara"]       { background: rgba(200, 16, 46, .90); }
+.rarity[data-raridade="super-rara"] { background: rgba(106, 79, 208, .90); }
+.rarity[data-raridade="ultra-rara"] { background: rgba(164, 16, 28, .92); }
+.rarity[data-raridade="mitica"]     { background: rgba(184, 121, 10, .92); }
+.rarity[data-raridade="secreta"]    { background: rgba(29, 20, 24, .92); }
+
+/* Estados da listagem */
+.catalogo-status { padding: 46px 20px; text-align: center; color: var(--apagado); font-size: 13.5px; }
+.catalogo-status strong { display: block; margin-bottom: 6px; color: var(--tinta); font: 700 17px var(--fonte-titulo); }
+
+.skeleton-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.skeleton {
+  height: 296px;
+  border-radius: 10px;
+  background: linear-gradient(100deg, var(--recuo) 30%, var(--linha) 50%, var(--recuo) 70%) 0 0 / 300% 100%;
+  animation: brilhar 1.3s ease-in-out infinite;
+}
+.skeleton-grid.colecoes { grid-template-columns: repeat(3, 1fr); }
+.skeleton-grid.colecoes .skeleton { height: 250px; }
+.skeleton-grid.vinculos { grid-template-columns: repeat(2, 1fr); }
+.skeleton-grid.vinculos .skeleton { height: 190px; }
+
+/* ------------------------------------------------------------
+   10. Formularios
+   ------------------------------------------------------------ */
+.field { display: grid; gap: 7px; color: var(--tinta); font-size: 12px; font-weight: 700; }
+.field input, .field select {
+  width: 100%;
+  height: 45px;
+  padding: 0 13px;
+  border: 1px solid var(--linha);
+  border-radius: 7px;
+  outline: 0;
+  color: var(--texto);
+  background: var(--superficie);
+  font-size: 13px;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--marca);
+  box-shadow: 0 0 0 3px var(--marca-halo);
+}
+.field input::placeholder { color: var(--apagado); }
+
+.field .opcional     { color: var(--apagado); font-weight: 500; text-transform: none; }
+.field .obrigatorio  { color: var(--erro); margin-left: 2px; }
+.field .ajuda        { color: var(--apagado); font-size: 11px; font-weight: 500; line-height: 1.4; }
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--erro);
+  background: var(--erro-suave);
+}
+.field input[aria-invalid="true"]:focus,
+.field select[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--erro-borda); }
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 0;
+  color: var(--erro);
+  font-size: 11px;
+  font-weight: 600;
+}
+.field-error:empty { display: none; }
+.field-error::before {
+  content: "!";
+  display: grid;
+  place-items: center;
+  flex: 0 0 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--erro);
+  color: var(--superficie);
+  font-size: 9px;
+}
+
+.field.larga   { grid-column: 1 / -1; }
+.field.estreita { width: 84px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--marca);
+  font-size: 11px;
+}
+.form-switch { text-align: center; color: var(--apagado); font-size: 12px; }
+.form-switch a, .form-row a { color: var(--marca); font-weight: 700; }
+.check { color: var(--apagado); }
+.check input { accent-color: var(--marca-cheia); }
+
+/* Select de edicoes: o estado de carregamento e a peca central da UX. */
+.field select:disabled { color: var(--apagado); background: var(--recuo); cursor: not-allowed; }
+
+.select-wrap { position: relative; display: block; }
+.select-wrap[data-estado="carregando"] select {
+  padding-right: 38px;
+  color: var(--marca);
+  font-weight: 600;
+}
+.select-wrap[data-estado="carregando"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid var(--linha);
+  border-top-color: var(--marca);
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+  pointer-events: none;
+}
+.select-wrap[data-estado="erro"] select { border-color: var(--erro); background: var(--erro-suave); }
+
+.select-retry {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--marca);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Upload de imagem com pre-visualizacao */
+.imagem-campo { grid-column: 1 / -1; }
+.imagem-grade { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: start; }
+
+.imagem-previa {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 132px;
+  overflow: hidden;
+  border: 1px dashed var(--linha);
+  border-radius: var(--raio);
+  background: var(--recuo);
+  color: var(--apagado);
+  font-size: 10px;
+  text-align: center;
+}
+.imagem-previa img { width: 100%; height: 100%; object-fit: cover; }
+
+.imagem-opcoes { display: grid; gap: 9px; }
+.imagem-opcoes input[type="file"] { font-size: 12px; color: var(--texto); }
+.imagem-opcoes input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--marca);
+  background: var(--marca-suave);
+  font-weight: 700;
+  cursor: pointer;
+}
+.imagem-separador { color: var(--apagado); font-size: 11px; text-align: center; }
+.remover-imagem {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--erro);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------
+   11. Botoes
+   ------------------------------------------------------------ */
+.primary-button, .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: var(--raio);
+  font-weight: 700;
+  color: var(--marca-contraste);
+  background: var(--marca-cheia);
+  box-shadow: var(--sombra-botao);
+}
+.primary-button:hover { background: var(--marca-forte); }
+.primary-button span { font-size: 19px; }
+.full { width: 100%; margin-top: 6px; }
+
+.secondary-button { color: var(--tinta); background: var(--recuo); box-shadow: none; }
+.secondary-button:hover { background: var(--linha); }
+
+.botao-perigo { color: #fff; background: var(--erro); box-shadow: 0 8px 20px var(--erro-borda); }
+.botao-perigo:hover { background: var(--erro-forte); }
+
+/* Ocupado: bloqueia o clique duplo enquanto o request esta no ar. */
+.primary-button[aria-busy="true"],
+.secondary-button[aria-busy="true"],
+.primary-button:disabled,
+.secondary-button:disabled {
+  opacity: .62;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.primary-button[aria-busy="true"] .rotulo::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border: 2px solid rgba(255, 255, 255, .45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+  vertical-align: -2px;
+}
+
+/* ------------------------------------------------------------
+   12. Avisos
+   ------------------------------------------------------------ */
+.alerta {
+  display: flex;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: var(--raio);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.alerta[hidden] { display: none; }
+.alerta.erro { color: var(--erro-forte); background: var(--erro-suave); border: 1px solid var(--erro-borda); }
+.alerta.ok   { color: var(--ok);        background: var(--ok-suave);   border: 1px solid var(--ok-borda); }
+.alerta.info { color: var(--aviso);     background: var(--aviso-suave); border: 1px solid var(--aviso-borda); }
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10;
+  padding: 13px 17px;
+  color: var(--fundo);
+  background: var(--tinta);
+  border-radius: 7px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: .2s;
+  pointer-events: none;
+  font-size: 13px;
+}
+.toast.visible { opacity: 1; transform: none; }
+.toast.error { color: #fff; background: var(--erro); }
+:root[data-tema="escuro"] .toast.error { color: var(--fundo); }
+
+/* ------------------------------------------------------------
+   13. Modais
+   ------------------------------------------------------------ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--veu);
+}
+
+.modal {
+  position: relative;
+  width: min(100%, 600px);
+  padding: 35px;
+  background: var(--superficie);
+  border-radius: 12px;
+  box-shadow: var(--sombra-modal);
+}
+.modal.largo { width: min(100%, 720px); }
+.modal h2 { margin: 0 0 26px; font: 700 27px var(--fonte-titulo); }
+.modal-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  border: 0;
+  background: none;
+  color: var(--apagado);
+  font-size: 25px;
+}
+.modal-close:hover { color: var(--tinta); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; }
+
+.confirmacao { width: min(100%, 420px); text-align: left; }
+.confirmacao h2 { margin-bottom: 10px; font-size: 22px; }
+.confirmacao p { margin: 0 0 6px; color: var(--apagado); font-size: 13.5px; line-height: 1.55; }
+.confirmacao .alvo { color: var(--tinta); font-weight: 700; }
+.confirmacao .irreversivel {
+  display: block;
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: var(--erro-suave);
+  color: var(--erro-forte);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   14. Login
+   ------------------------------------------------------------ */
+.auth-page {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 30px;
+  background:
+    radial-gradient(60% 55% at 15% 12%, var(--marca-suave), transparent 70%),
+    radial-gradient(55% 50% at 88% 88%, var(--ouro-suave), transparent 70%),
+    var(--fundo);
+}
+
+.auth-brand { position: absolute; top: 32px; left: clamp(25px, 8vw, 120px); }
+
+.auth-panel {
+  width: min(100%, 430px);
+  padding: 42px;
+  background: var(--superficie);
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  box-shadow: var(--sombra-alta);
+}
+.auth-kicker { margin-bottom: 12px; color: var(--marca); font-size: 10px; font-weight: 700; letter-spacing: 1.4px; }
+.auth-panel h1 { margin: 0; font: 700 35px var(--fonte-titulo); letter-spacing: -1.5px; }
+.auth-subtitle { margin: 12px 0 27px; color: var(--apagado); font-size: 14px; line-height: 1.5; }
+.auth-form { display: grid; gap: 16px; }
+.auth-footer { position: absolute; bottom: 20px; color: var(--apagado); font-size: 11px; }
+
+/* Sem cabecalho na tela de login, o botao de tema fica solto no canto. */
+.tema-toggle-solto { position: absolute; top: 30px; right: clamp(25px, 8vw, 120px); }
+
+/* ------------------------------------------------------------
+   15. Colecoes
+   ------------------------------------------------------------ */
+.colecao-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+.colecao-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--superficie);
+  transition: .2s box-shadow, .2s transform;
+}
+.colecao-card:hover { transform: translateY(-3px); box-shadow: var(--sombra-card); }
+
+/* Mosaico 2x2 com as ultimas cartas incluidas. As celulas vazias continuam
+   no lugar para o quadrado nao mudar de forma conforme a colecao enche. */
+.colecao-mosaico {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  height: 156px;
+  background: var(--linha);
+}
+.mosaico-celula { position: relative; display: block; overflow: hidden; background: var(--vazio); }
+.mosaico-celula.vazia { background: var(--recuo); }
+.mosaico-celula img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.mosaico-iniciais {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--vazio-tinta);
+  font: 700 15px var(--fonte-titulo);
+  letter-spacing: 1px;
+  user-select: none;
+}
+
+.colecao-corpo { display: flex; flex-direction: column; flex: 1; padding: 15px; }
+.colecao-marcadores { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+
+.tipo-badge {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.tipo-badge[data-tipo="deck"]     { color: var(--marca);   background: var(--marca-suave); }
+.tipo-badge[data-tipo="binder"]   { color: var(--apagado); background: var(--recuo); }
+.tipo-badge[data-tipo="wishlist"] { color: var(--ouro);    background: var(--ouro-suave); }
+
+.colecao-jogo {
+  overflow: hidden;
+  color: var(--apagado);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colecao-card h3 {
+  margin: 0 0 6px;
+  font: 600 17px var(--fonte-titulo);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colecao-descricao {
+  margin: 0 0 10px;
+  color: var(--apagado);
+  font-size: 12px;
+  line-height: 1.5;
+  /* Duas linhas no maximo: descricoes de tamanhos diferentes nao podem
+     desalinhar a altura dos cartoes vizinhos da grade. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.colecao-descricao.vazia { color: var(--vazio-tinta); font-style: italic; }
+
+.colecao-contagem { margin: 0 0 4px; color: var(--tinta); font: 700 12px var(--fonte-titulo); }
+
+/* Empurra as acoes para a base, para os botoes ficarem alinhados na grade. */
+.colecao-card .card-actions { margin-top: auto; padding-top: 13px; }
+
+/* Modal de conteudo da colecao */
+.conteudo-descricao { margin: -18px 0 20px; color: var(--apagado); font-size: 13px; line-height: 1.5; }
+.conteudo-descricao:empty { display: none; }
+
+.incluir-carta {
+  display: grid;
+  grid-template-columns: 1fr 84px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 15px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--recuo);
+}
+.incluir-carta .field { gap: 7px; }
+.incluir-carta label { color: var(--tinta); font-size: 12px; font-weight: 700; }
+.incluir-carta .primary-button { height: 45px; }
+
+.conteudo-lista { margin-top: 20px; }
+.conteudo-resumo { margin: 0 0 10px; color: var(--apagado); font-size: 11.5px; font-weight: 600; }
+
+.conteudo-cartas {
+  /* A lista rola dentro do modal: o cabecalho e o campo de inclusao ficam
+     sempre visiveis, mesmo num deck com dezenas de cartas. */
+  max-height: 340px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.conteudo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--linha);
+}
+.conteudo-item:last-child { border-bottom: 0; }
+
+.conteudo-capa {
+  position: relative;
+  flex: 0 0 34px;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--vazio);
+}
+.conteudo-capa img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.linha-iniciais {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--vazio-tinta);
+  font: 700 11px var(--fonte-titulo);
+}
+
+.conteudo-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.conteudo-texto strong { color: var(--tinta); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conteudo-texto small { color: var(--apagado); font-size: 11px; }
+
+.selo-origem {
+  padding: 3px 7px;
+  border-radius: 20px;
+  color: var(--ok);
+  background: var(--ok-suave);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.conteudo-quantidade { color: var(--tinta); font: 700 13px var(--fonte-titulo); }
+
+.tirar-carta {
+  padding: 5px 9px;
+  border: 1px solid var(--erro-borda);
+  border-radius: 5px;
+  color: var(--erro);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+}
+.tirar-carta:hover:not(:disabled) { background: var(--erro-suave); }
+.tirar-carta:disabled { opacity: .5; cursor: not-allowed; }
+
+.conteudo-vazio { padding: 26px 10px; color: var(--apagado); font-size: 13px; text-align: center; }
+
+/* ------------------------------------------------------------
+   16. Importacoes
+   ------------------------------------------------------------ */
+#aviso-mock { margin-bottom: 22px; }
+
+.vinculo-lista { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+
+.vinculo-card {
+  display: flex;
+  flex-direction: column;
+  padding: 19px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  background: var(--superficie);
+  transition: .2s box-shadow;
+}
+.vinculo-card:hover { box-shadow: var(--sombra-card); }
+
+.vinculo-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+
+.status-pill {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.status-pill[data-status="pendente"]      { color: var(--aviso); background: var(--aviso-suave); }
+.status-pill[data-status="sincronizando"] { color: var(--marca); background: var(--marca-suave); }
+.status-pill[data-status="concluida"]     { color: var(--ok);    background: var(--ok-suave); }
+.status-pill[data-status="erro"]          { color: var(--erro);  background: var(--erro-suave); }
+
+.vinculo-jogo { color: var(--apagado); font-size: 11px; font-weight: 600; }
+.vinculo-card h3 { margin: 0 0 8px; font: 600 18px var(--fonte-titulo); }
+
+.vinculo-identificador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  color: var(--apagado);
+  font-size: 12px;
+}
+.vinculo-identificador code {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--recuo);
+  color: var(--tinta);
+  font-family: var(--fonte-mono);
+  font-size: 11.5px;
+  word-break: break-all;
+}
+
+.vinculo-destino { color: var(--tinta); font-weight: 700; }
+.vinculo-destino.removido { color: var(--erro); font-style: italic; font-weight: 600; }
+
+.vinculo-numeros { margin-bottom: 8px; color: var(--apagado); font-size: 12px; }
+.vinculo-numeros strong { color: var(--tinta); font: 700 14px var(--fonte-titulo); }
+
+.vinculo-mensagem {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  background: var(--recuo);
+  color: var(--texto);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.vinculo-rodape { margin: 0; color: var(--apagado); font-size: 11px; }
+.vinculo-card .card-actions { margin-top: auto; padding-top: 15px; }
+.vinculo-card .card-actions button { padding: 8px 12px; font-size: 11px; }
+
+/* ------------------------------------------------------------
+   17. Rodape
+   ------------------------------------------------------------ */
+footer {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1120px;
+  margin: auto;
+  padding: 25px 0;
+  color: var(--apagado);
+  font-size: 11px;
+}
+footer span { color: var(--tinta); font: 700 16px var(--fonte-titulo); }
+
+/* ------------------------------------------------------------
+   18. Media queries
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .select-wrap[data-estado="carregando"]::after { animation-duration: 2.5s; }
+  .skeleton { animation: none; }
+  .card, .colecao-card, .vinculo-card, .primary-button, .toast, .tema-toggle { transition: none; }
+}
+
+@media (max-width: 980px) {
+  .colecao-grid,
+  .skeleton-grid.colecoes { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 800px) {
+  /* A folha original escondia .main-nav aqui, o que nao custava nada quando o
+     painel era a unica pagina. Com tres categorias, esconder deixaria Colecoes
+     e Importacoes inalcancaveis no celular: a navegacao desce para uma segunda
+     linha rolavel. */
+  .site-header {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    row-gap: 10px;
+  }
+  .main-nav {
+    display: flex;
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .main-nav::-webkit-scrollbar { display: none; }
+  .main-nav a { padding: 8px 14px; white-space: nowrap; }
+  .profile-copy { display: none; }
+
+  .dashboard-hero { padding: 42px 22px; min-height: 460px; }
+  .dashboard-hero > div:first-child { width: 56%; }
+  .dashboard-hero.compacto { min-height: 380px; }
+  .hero-art { width: 44%; align-items: center; }
+  .hero-art img { width: 150px; height: 210px; }
+  .hero-orbit { width: 240px; height: 190px; }
+  .hero-badge { right: -5px; bottom: 45px; }
+
+  .quick-stats {
+    margin: 0 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    padding: 24px 0;
+  }
+  .quick-stats > div { justify-content: start; border: 0; }
+
+  .catalog-section { padding: 42px 20px; }
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .search-field { width: 100%; }
+  .filter-tabs.linha-secundaria { margin-top: 0; }
+
+  .catalog-grid,
+  .skeleton-grid { grid-template-columns: repeat(2, 1fr); }
+  .vinculo-lista,
+  .skeleton-grid.vinculos { grid-template-columns: 1fr; }
+
+  .form-grid { grid-template-columns: 1fr; }
+  .imagem-grade { grid-template-columns: 76px 1fr; }
+  .imagem-previa { width: 76px; height: 106px; }
+  .incluir-carta { grid-template-columns: 1fr 84px; }
+  .incluir-carta .primary-button { grid-column: 1 / -1; }
+  .field.larga, .field.estreita { width: auto; }
+
+  .auth-panel { padding: 30px 24px; }
+  .auth-brand { left: 24px; }
+  .tema-toggle-solto { right: 24px; }
+
+  footer { padding: 22px 20px; }
+}
+
+/* Nas paginas internas o texto do hero e mais longo que o do painel e, abaixo
+   desta largura, passaria por baixo da arte. Como a arte e decorativa (alt=""),
+   ela sai e o texto fica inteiro. */
+@media (max-width: 620px) {
+  .dashboard-hero.compacto { min-height: 0; padding-bottom: 34px; }
+  .dashboard-hero.compacto > div:first-child { width: 100%; }
+  .dashboard-hero.compacto .hero-art { display: none; }
+}
+
+@media (max-width: 460px) {
+  .dashboard-hero h1 { font-size: 39px; letter-spacing: -2px; }
+  .dashboard-hero p:not(.eyebrow) { font-size: 13px; }
+  .hero-art img { width: 120px; height: 180px; }
+
+  .catalog-grid { gap: 10px; }
+  .card-image { height: 160px; }
+  .card-body { padding: 11px; }
+  .card h3 { font-size: 13px; }
+  .skeleton { height: 250px; }
+
+  .section-heading { align-items: start; gap: 15px; flex-direction: column; }
+  .colecao-grid,
+  .skeleton-grid.colecoes { grid-template-columns: 1fr; }
+  .conteudo-cartas { max-height: 260px; }
+  .conteudo-item { flex-wrap: wrap; }
+
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions button { width: 100%; }
+
+  footer { gap: 10px; flex-direction: column; }
+}
